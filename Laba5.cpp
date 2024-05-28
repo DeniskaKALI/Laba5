@@ -66,26 +66,72 @@ private:
     }
 };
 
+
+// Функция для обработки прибытия автомобиля
+void handleArrival(Stack<int>& parking, int carNumber);
+
+// Функция для обработки отъезда автомобиля
+void handleDeparture(Stack<int>& parking, int carNumber, int& removalCount);
+
 int main() {
     setlocale(LC_ALL, "ru");
-    // Создание стека типа int
-    Stack<int> intStack;
+    Stack<int> parking; // Создаем стек для стоянки автомобилей
+    int removalCount = 0; // Счетчик удалений для обеспечения выезда других автомобилей
 
-    // Добавление элементов
-    intStack.push(10);
-    intStack.push(20);
-    intStack.push(30);
+    std::string command;
+    int carNumber;
 
-    // Вывод размера стека
-    std::cout << "Размер стека: " << intStack.getSize() << std::endl;
+    std::cout << "Введите команду (A <номер> для прибытия, D <номер> для отъезда, Q для выхода):" << std::endl;
 
-    // Получение верхнего элемента без удаления
-    std::cout << "Верхний элемент стека: " << intStack.top() << std::endl;
+    while (true) {
+        std::cin >> command;
 
-    // Извлечение элементов из стека
-    while (!intStack.isEmpty()) {
-        std::cout << "Извлечен элемент: " << intStack.pop() << std::endl;
+        if (command == "Q") {
+            break;
+        }
+        else if (command == "A") {
+            std::cin >> carNumber;
+            handleArrival(parking, carNumber);
+        }
+        else if (command == "D") {
+            std::cin >> carNumber;
+            handleDeparture(parking, carNumber, removalCount);
+        }
+        else {
+            std::cout << "Неверная команда. Повторите ввод." << std::endl;
+        }
     }
 
     return 0;
+}
+
+void handleArrival(Stack<int>& parking, int carNumber) {
+    parking.push(carNumber);
+    std::cout << "Автомобиль " << carNumber << " прибыл на стоянку." << std::endl;
+}
+
+void handleDeparture(Stack<int>& parking, int carNumber, int& removalCount) {
+    Stack<int> temp; // Временный стек для сохранения порядка машин
+
+    // Удаляем машины, загораживающие проезд, до тех пор, пока не достигнем нужного номера
+    while (!parking.isEmpty() && parking.top() != carNumber) {
+        temp.push(parking.pop());
+        removalCount++;
+    }
+
+    // Если машина, которую нужно вывести, найдена, выводим сообщение о количестве удалений
+    if (!parking.isEmpty() && parking.top() == carNumber) {
+        std::cout << "Автомобиль " << carNumber << " выехал со стоянки после " << removalCount << " удалений." << std::endl;
+        parking.pop(); // Удаляем автомобиль с вершины стека
+    }
+    else {
+        std::cout << "Автомобиль " << carNumber << " не найден на стоянке." << std::endl;
+    }
+
+    // Возвращаем машины из временного стека обратно на основную стоянку
+    while (!temp.isEmpty()) {
+        parking.push(temp.pop());
+    }
+
+    removalCount = 0; // Сбрасываем счетчик удалений
 }
